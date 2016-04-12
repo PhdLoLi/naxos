@@ -122,7 +122,6 @@ void Captain::commit(std::string& data, ndn::Name& dataName) {
   prop_value->set_id(value_id_);
   value_id_mutex_.unlock();
 
-
   if (view_->if_master()) {
     commit(prop_value, dataName);
   } else {

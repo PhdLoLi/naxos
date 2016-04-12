@@ -32,6 +32,9 @@ View::View(node_id_t node_id, std::string cf)
   YAML::Node lease = config["lease"];
   YAML::Node db = config["db"];
 
+  size_ =nodes.size();
+  q_size_ = ceil((size_ + 1) / 2.0);
+
   for (std::size_t i = 0; i < nodes.size(); i++) {
 
 		YAML::Node node = nodes[i];
@@ -50,10 +53,12 @@ View::View(node_id_t node_id, std::string cf)
 
     host_info_t host_info = host_info_t(name, addr);
     host_nodes_.push_back(host_info);
+    if (i <= q_size_) {
+      quorums_.emplace(i);
+    } else {
+      n_quorums_.emplace(i);
+    }
   }
-    
-  size_ = host_nodes_.size();
-  q_size_ = ceil((size_ + 1) / 2.0);
 
   if (lease) {
     master_id_ = lease["master_id"].as<int>();
@@ -87,8 +92,12 @@ View::View(node_id_t node_id, std::string cf)
  
 }
 
-std::set<node_id_t> * View::get_nodes() {
-  return &nodes_;
+std::set<node_id_t> * View::get_quorums() {
+  return &quorums_;
+}
+
+std::set<node_id_t> * View::get_n_quorums() {
+  return &n_quorums_;
 }
 
 std::vector<host_info_t> * View::get_host_nodes() {
@@ -155,25 +164,6 @@ uint32_t View::length() {
   return length_;
 }
 
-node_id_t View::rs_x() {
-  return rs_x_;
-}
-
-node_id_t View::rs_n() {
-  return rs_n_;
-}
-
-node_id_t View::rs_f() {
-  return rs_f_;
-}
-
-node_id_t View::rs_qr() {
-  return rs_qr_;
-}
-
-node_id_t View::rs_qw() {
-  return rs_qw_;
-}
 
 void View::print_host_nodes() {
   std::cout << "-----*-*-*-*-*-*-*-*-*------" << std::endl;

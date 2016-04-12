@@ -23,11 +23,6 @@ Commo::Commo(Captain *captain, View &view, int role)
   for (uint32_t i = 0; i < view_->nodes_size(); i++) {
     ndn::Name new_name(view_->prefix()); 
     consumer_names_.push_back(new_name.append(view_->hostname(i)));
-//    ndn::Interest interest;
-//    interest.setInterestLifetime(ndn::time::milliseconds(100));
-//    interest.setMustBeFresh(true);
-//    consumer_interests_.push_back(interest);
-//    LOG_INFO_COM("Add consumer_names[%d]: %s", i, consumer_names_[i].toUri().c_str());
   }
   log_name_.append("log");
   commit_name_.append("commit");
@@ -110,10 +105,8 @@ void Commo::broadcast_msg(google::protobuf::Message *msg, MsgType msg_type) {
   ndn::name::Component message(reinterpret_cast<const uint8_t*>
                                (msg_str.c_str()), msg_str.size());
 
-  int collection = view_->quorum_size();
-  
-  for (uint32_t i = 0; i < collection; i++) {
-    
+  for (std::set<node_id_t>::iterator it = view_->get_quorums()->begin(); it != view_->get_quorums()->end(); ++it) {
+   int i = *it; 
     if (i == view_->whoami()) {
 //      pool_->schedule(boost::bind(&Commo::handle_myself, this, msg, msg_type));
       LOG_DEBUG_COM("Broadcast to myself --node%d (msg_type):%s", i, msg_type_str[msg_type].c_str());
