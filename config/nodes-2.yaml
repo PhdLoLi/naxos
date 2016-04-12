@@ -1,0 +1,7 @@
+db: {name: gintama.db, path: ndndb}
+host:
+- {addr: 192.168.1.100, name: node0}
+- {addr: 192.168.1.101, name: node1}
+lease: {length: 100000, master_id: 0, period: 1000}
+prefix: /ndn/thu/naxos
+rs: {f: 0, n: 2, qr: 2, qw: 2, x: 2}

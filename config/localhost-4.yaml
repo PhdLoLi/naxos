@@ -1,0 +1,9 @@
+db: {name: gintama.db, path: ndndb}
+host:
+- {addr: localhost, name: node0}
+- {addr: localhost, name: node1}
+- {addr: localhost, name: node2}
+- {addr: localhost, name: node3}
+lease: {length: 100000, master_id: 0, period: 1000}
+prefix: /ndn/thu/naxos
+rs: {f: 1, n: 2, qr: 3, qw: 3, x: 4}
