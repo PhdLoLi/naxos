@@ -6,17 +6,48 @@
 
 #include "client.hpp"
 #include <cstdlib>
+#include <math.h>
+#include <stdlib.h>
 
 namespace ndnpaxos {
 
-Client::Client(ndn::Name prefix, int commit_win, int ratio) 
- : prefix_(prefix), com_win_(commit_win), ratio_(ratio),
+Client::Client(ndn::Name prefix, int commit_win, int ratio, int node_num) 
+ : prefix_(prefix), com_win_(commit_win), ratio_(ratio), node_num_(node_num),
    commit_counter_(0), rand_counter_(0), thr_counter_(0), starts_(20000000),
    recording_(false), done_(false) {
 
   write_or_read_ = ratio_ == 10 ? 1 : 0;
 
+  int q_size = ceil((node_num + 1) / 2.0);
+
+  // nfdc register 
   prefix_.append("commit");
+
+  ndn::Name write_name(prefix_);
+  write_name.appendNumber(0);
+  ndn::Name read_name(prefix_);
+  read_name.appendNumber(1);
+
+  std::string cmd_write = "nfdc register " + write_name.toUri() + " tcp://node0";
+  system(cmd_write.c_str());
+  LOG_INFO("After Running %s", cmd_write.c_str());
+
+  if (node_num == 1) {
+    std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node0";
+    system(cmd_read.c_str());
+    LOG_INFO("After Running %s", cmd_read.c_str());
+  } else if (node_num == 2){
+    std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node1";
+    system(cmd_read.c_str());
+    LOG_INFO("After Running %s", cmd_read.c_str());
+  } else {
+    for (int i = q_size; i < node_num; i++) {
+      std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node" + std::to_string(i);
+      system(cmd_read.c_str());
+      LOG_INFO("After Running %s", cmd_read.c_str());
+    }
+  }
+
   face_ = ndn::make_shared<ndn::Face>();
   boost::thread listen(boost::bind(&Client::attach, this));
 }

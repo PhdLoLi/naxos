@@ -6,6 +6,7 @@
 #include "view.hpp"
 #include <boost/filesystem.hpp>
 #include <math.h>
+#include <stdlib.h>
 
 namespace ndnpaxos {
 
@@ -44,8 +45,17 @@ View::View(node_id_t node_id, std::string cf)
     // set a node in view
     std::string local_host("localhost");
     if (addr.compare(local_host) != 0) {
-      LOG_INFO("nfdc register %s/%s tcp://%s", 
-               prefix_.c_str(), name.c_str(), addr.c_str());
+      if ((node_id_ == 0) && (i > 0)) {
+        std::string cmd_node = "nfdc register " + prefix_ + "/" + name + " tcp://" + addr;
+        system(cmd_node.c_str());
+        LOG_INFO("After Running %s", cmd_node.c_str());
+      }
+      if ((node_id_ >= q_size_) && (i == size_ - node_id_)) {
+        std::string cmd_log = "nfdc register " + prefix_ + "/log" + " tcp://" + addr;
+        system(cmd_log.c_str());
+        LOG_INFO("After Running %s", cmd_log.c_str());
+      }
+ 
     } else {
       LOG_INFO("no need to nfdc register %s/%s tcp://localhost", 
                prefix_.c_str(), name.c_str());

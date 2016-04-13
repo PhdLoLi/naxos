@@ -22,7 +22,7 @@ namespace ndnpaxos {
 
 class Client {
  public:
-  Client(ndn::Name prefix, int commit_win, int ratio = 100);
+  Client(ndn::Name prefix, int commit_win, int ratio, int node_num);
   ~Client();
   void attach();
   void stop();
@@ -37,6 +37,7 @@ class Client {
   ndn::Name prefix_;
   int com_win_;
   int ratio_;
+  int node_num_;
   int write_or_read_;
   
 

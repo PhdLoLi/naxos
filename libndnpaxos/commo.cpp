@@ -40,17 +40,18 @@ Commo::Commo(Captain *captain, View &view, int role)
                           bind(&Commo::onRegisterFailed, this, _1, _2));
     // only register master for clients
   } else {
-
-    LOG_INFO_COM("setInterestFilter for %s", consumer_names_[view_->whoami()].toUri().c_str());
-    face_->setInterestFilter(consumer_names_[view_->whoami()],
-                          bind(&Commo::onInterest, this, _1, _2),
-                          bind(&Commo::onRegisterSucceed, this, _1),
-                          bind(&Commo::onRegisterFailed, this, _1, _2));
-    LOG_INFO_COM("setInterestFilter for %s", log_name_.toUri().c_str());
-    face_->setInterestFilter(log_name_,
-                          bind(&Commo::onInterestLog, this, _1, _2),
-                          bind(&Commo::onRegisterSucceed, this, _1),
-                          bind(&Commo::onRegisterFailed, this, _1, _2));
+    if (view_->if_quorum()) {
+      LOG_INFO_COM("setInterestFilter for %s", consumer_names_[view_->whoami()].toUri().c_str());
+      face_->setInterestFilter(consumer_names_[view_->whoami()],
+                            bind(&Commo::onInterest, this, _1, _2),
+                            bind(&Commo::onRegisterSucceed, this, _1),
+                            bind(&Commo::onRegisterFailed, this, _1, _2));
+      LOG_INFO_COM("setInterestFilter for %s", log_name_.toUri().c_str());
+      face_->setInterestFilter(log_name_,
+                            bind(&Commo::onInterestLog, this, _1, _2),
+                            bind(&Commo::onRegisterSucceed, this, _1),
+                            bind(&Commo::onRegisterFailed, this, _1, _2));
+    }
     if (!view_->if_quorum() || (view_->nodes_size() == 2)) {
 
       // non-quorum servants need to serve reading requests
