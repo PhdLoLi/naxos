@@ -124,8 +124,8 @@ def _enable_log(conf):
 #    if os.getenv("DEBUG") == "1":
 
 def _enable_mode(conf):
-    if Options.options.mode == 'Q':
-        Logs.pprint("PINK", "Mode type set to Quorum")
+    if Options.options.mode == 'R':
+        Logs.pprint("PINK", "Mode type set to Recover")
         conf.env.append_value("CFLAGS", "-DMODE_TYPE=1")
         conf.env.append_value("CXXFLAGS", "-DMODE_TYPE=1")
     elif Options.options.mode == '':
