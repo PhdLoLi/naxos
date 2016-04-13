@@ -55,20 +55,26 @@ void Client::start_commit() {
 
     // random generate write or read num 0 ~ 9
     if (ratio_ < 100) {
-      if (commit_counter_ % 10 == 0) {
-        rand_counter_ = commit_counter_ + (rand() % 10); 
-      }
-      if (commit_counter_ == rand_counter_) {
-        LOG_INFO("I 10per %d", commit_counter_);
-        new_name.appendNumber(1 - write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
+      if (ratio_ == 0) {
+        new_name.appendNumber(1).appendNumber(i).appendNumber(commit_counter_).append(value);
+        LOG_INFO("I read %d", commit_counter_);
       } else {
-        new_name.appendNumber(write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
-        LOG_INFO("I 90per %d", commit_counter_);
+        if (commit_counter_ % 10 == 0) {
+          rand_counter_ = commit_counter_ + (rand() % 10); 
+        }
+        if (commit_counter_ == rand_counter_) {
+          LOG_INFO("I 10per %d", commit_counter_);
+          new_name.appendNumber(1 - write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
+        } else {
+          new_name.appendNumber(write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
+          LOG_INFO("I 90per %d", commit_counter_);
+        }
       }
     } else {
       new_name.appendNumber(write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
       LOG_INFO("I write %d", commit_counter_);
     }
+  
     commit_counter_++;
     counter_mut_.unlock();
 
@@ -215,15 +221,22 @@ void Client::onData(const ndn::Interest& interest, const ndn::Data& data) {
     ndn::Name new_name(prefix_);
 
     if (ratio_ < 100) {
-      if (commit_counter_ % 10 == 0) {
-        rand_counter_ = commit_counter_ + (rand() % 10); 
-      }
-      if (commit_counter_ == rand_counter_) {
-        new_name.appendNumber(1 - write_or_read_).appendNumber(client_id).appendNumber(commit_counter_).append(value);
-//        LOG_INFO("onData I 10per %d", commit_counter_);
+
+      if (ratio_ == 0) {
+        new_name.appendNumber(1).appendNumber(client_id).appendNumber(commit_counter_).append(value);
+//        LOG_INFO("onData I read 0per %d", commit_counter_);
       } else {
-        new_name.appendNumber(write_or_read_).appendNumber(client_id).appendNumber(commit_counter_).append(value);
-//        LOG_INFO("onData I 90per %d", commit_counter_);
+  
+        if (commit_counter_ % 10 == 0) {
+          rand_counter_ = commit_counter_ + (rand() % 10); 
+        }
+        if (commit_counter_ == rand_counter_) {
+          new_name.appendNumber(1 - write_or_read_).appendNumber(client_id).appendNumber(commit_counter_).append(value);
+  //        LOG_INFO("onData I 10per %d", commit_counter_);
+        } else {
+          new_name.appendNumber(write_or_read_).appendNumber(client_id).appendNumber(commit_counter_).append(value);
+  //        LOG_INFO("onData I 90per %d", commit_counter_);
+        }
       }
     } else {
       new_name.appendNumber(write_or_read_).appendNumber(client_id).appendNumber(commit_counter_).append(value);
