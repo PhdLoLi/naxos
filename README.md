@@ -1,7 +1,7 @@
-NDNPaxos
+Naxos
 ----
 
-NDNPaxos is an implementation combining Paxos and NDN. It also inculdes some simple testing of functionality and performance.  
+Naxos is an implementation combining Paxos and NDN. It also inculdes some simple testing of functionality and performance.  
 
 For license information see LICENSE.
 
@@ -11,14 +11,12 @@ Structure
 The directory structure is as follows:
 
 * **/root**
-    * **libndnpaxos/** *-- NDNPaxos library source code*
+    * **libndnpaxos/** *-- Naxos library source code*
     * **waf** *-- binary waf file*
     * **wscript** *-- waf instruction file*
     * **config/** *-- config files of this project* 
     * **waf-tools/** *-- additional waf tools*
     * **test/** *-- test code*
-    * **examples/** *-- some simple example codes*
-    * **libzfec/** *-- zefc library using for RS code*
     * **script/** *-- some python scripts*
     * **LICENSE**
     * **README.md**
@@ -27,7 +25,7 @@ Building instructions
 ----
 Prerequisites
 ==
-These are prerequisites to build NDNPaxos.
+These are prerequisites to build Naxos.
 
 **Required:**
 * [clang](http://clang.llvm.org/)
