@@ -16,6 +16,10 @@ Client::Client(ndn::Name prefix, int commit_win, int ratio, int read_node)
    commit_counter_(0), rand_counter_(0), thr_counter_(0), starts_(20000000),
    recording_(false), done_(false) {
 
+  system("nfd-stop");
+  sleep(1);
+  system("nfd-start");
+
   write_or_read_ = ratio_ == 10 ? 1 : 0;
 
 #if MODE_TYPE == 1 
