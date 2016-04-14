@@ -84,7 +84,7 @@ void Client::stop() {
 void Client::start_commit() {
 
   int warming = 2;
-  int interval = 4;
+  int interval = 3;
   for (int i = 0; i < warming; i++) {
     LOG_INFO("Warming Counting %d", i + 1);
     sleep(1);
@@ -143,7 +143,7 @@ void Client::start_commit() {
   uint64_t before = 0;
   uint64_t throughput = 0;
 
-  for (int j = 0; j < interval * 5; j++) {
+  for (int j = 0; j < interval * 4; j++) {
     LOG_INFO("Time %d", j + 1);
 
     thr_mut_.lock();
