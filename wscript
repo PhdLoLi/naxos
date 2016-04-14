@@ -128,6 +128,10 @@ def _enable_mode(conf):
         Logs.pprint("PINK", "Mode type set to Recover")
         conf.env.append_value("CFLAGS", "-DMODE_TYPE=1")
         conf.env.append_value("CXXFLAGS", "-DMODE_TYPE=1")
+    if Options.options.mode == 'S':
+        Logs.pprint("PINK", "Mode type set to Recover")
+        conf.env.append_value("CFLAGS", "-DMODE_TYPE=2")
+        conf.env.append_value("CXXFLAGS", "-DMODE_TYPE=2")
     elif Options.options.mode == '':
         pass
     else:
