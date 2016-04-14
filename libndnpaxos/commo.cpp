@@ -239,7 +239,7 @@ void Commo::onInterestCommit(const ndn::InterestFilter& filter, const ndn::Inter
     captain_->commit(value, inName);
   else {
     // read data and return the result directly
-    LOG_INFO("return read directly!");
+//    LOG_INFO("return read directly!");
     std::string data_value = "Need to change here";
     produce(data_value, inName);
   }
