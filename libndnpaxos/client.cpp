@@ -16,12 +16,10 @@ Client::Client(ndn::Name prefix, int commit_win, int ratio, int read_node)
    commit_counter_(0), rand_counter_(0), thr_counter_(0), starts_(20000000),
    recording_(false), done_(false) {
 
-  LOG_INFO("Stop NFD and Sleep for 1 second");
-  system("nfd-stop");
-  sleep(1);
-  LOG_INFO("Start NFD and Sleep for 1 second");
-  system("nfd-start");
-  sleep(1);
+  LOG_INFO("Restart NFD and Sleep for 2 seconds");
+  std::string nfd = "nfd-stop; nfd-start";
+  system(nfd.c_str());
+  sleep(2);
 
   write_or_read_ = ratio_ == 10 ? 1 : 0;
 
