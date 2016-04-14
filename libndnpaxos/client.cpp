@@ -84,7 +84,7 @@ void Client::stop() {
 void Client::start_commit() {
 
   int warming = 2;
-  int interval = 3;
+  int interval = 4;
   for (int i = 0; i < warming; i++) {
     LOG_INFO("Warming Counting %d", i + 1);
     sleep(1);
@@ -143,7 +143,7 @@ void Client::start_commit() {
   uint64_t before = 0;
   uint64_t throughput = 0;
 
-  for (int j = 0; j < interval * 4; j++) {
+  for (int j = 0; j < interval * 5; j++) {
     LOG_INFO("Time %d", j + 1);
 
     thr_mut_.lock();
@@ -177,43 +177,42 @@ void Client::start_commit() {
     sleep(1);
   }
 
-//  std::ofstream file_throughput_;
-//  std::ofstream file_latency_;
+  std::ofstream file_throughput_;
+  std::ofstream file_latency_;
 //  std::ofstream file_trytime_;
-//  std::string thr_name;
-//  std::string lat_name;
+  std::string thr_name;
+  std::string lat_name;
 //  std::string try_name;
-//  
-//  LOG_INFO("Writing File Now!");
+  
+  LOG_INFO("Writing File Now!");
 
-//  thr_name = "results/ndnpaxos/N_t_" + std::to_string(node_num_) + "_" + std::to_string(win_size_) + ".txt";
-//  lat_name = "results/ndnpaxos/N_l_" + std::to_string(node_num_) + "_" + std::to_string(win_size_) + ".txt";
+  thr_name = "results/naxos/N_t_" + std::to_string(com_win_) + "_" + std::to_string(ratio_) + "_" + std::to_string(read_node_) + ".txt";
+  lat_name = "results/naxos/N_l_" + std::to_string(com_win_) + "_" + std::to_string(ratio_) + "_" + std::to_string(read_node_) + ".txt";
 //  try_name = "results/ndnpaxos/N_r_" + std::to_string(node_num_) + "_" + std::to_string(win_size_) + ".txt";
-//  #endif
-//
-//  file_throughput_.open(thr_name);
-//
-//  file_latency_.open(lat_name);
-//
+
+  file_throughput_.open(thr_name);
+
+  file_latency_.open(lat_name);
+
 //  file_trytime_.open(try_name);
-//
-//  for (int i = 0; i < throughputs_.size(); i++) {
-//    file_throughput_ << throughputs_[i] << "\n";
-//  }
-//
-//  file_throughput_.close();
-//
-//  for (int j = 0; j < periods_.size(); j++) {
-//    file_latency_ << periods_[j] << "\n";
-//  }
-//  file_latency_.close();
-//
+
+  for (int i = 0; i < throughputs_.size(); i++) {
+    file_throughput_ << throughputs_[i] << "\n";
+  }
+
+  file_throughput_.close();
+
+  for (int j = 0; j < periods_.size(); j++) {
+    file_latency_ << periods_[j] << "\n";
+  }
+  file_latency_.close();
+
 //  for (int j = 0; j < trytimes_.size(); j++) {
 //    file_trytime_ << trytimes_[j] << "\n";
 //  }
 //  file_trytime_.close();
 
-//  LOG_INFO("Writing File Finished!");
+  LOG_INFO("Writing File Finished!");
   stop();
   
 }
