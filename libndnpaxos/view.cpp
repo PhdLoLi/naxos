@@ -16,7 +16,7 @@ View::View(node_id_t node_id, std::string cf)
   LOG_INFO("Restart NFD and Sleep for 2 seconds");
   std::string nfd = "nfd-stop; nfd-start";
   system(nfd.c_str());
-  sleep(2);
+  sleep(3);
 
   LOG_INFO("loading config file %s ...", cf.c_str());
 	

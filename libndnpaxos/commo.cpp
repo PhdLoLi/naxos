@@ -29,14 +29,8 @@ Commo::Commo(Captain *captain, View &view, int role)
 
   if (view_->if_master()) {
     ndn::Name write_name(commit_name_);
-
-#if MODE_TYPE == 2 
-#else
-    if ((view_->nodes_size() > 1)) {
-      write_name.appendNumber(0);
-      // if there is only one node, then serve read and write
-    }
-#endif
+    write_name.appendNumber(0);
+    // if there is only one node, then serve read and write
 
     LOG_INFO_COM("setInterestFilter for %s", write_name.toUri().c_str());
     face_->setInterestFilter(write_name,
@@ -44,6 +38,26 @@ Commo::Commo(Captain *captain, View &view, int role)
                           bind(&Commo::onRegisterSucceed, this, _1),
                           bind(&Commo::onRegisterFailed, this, _1, _2));
     // only register master for clients
+    
+#if MODE_TYPE == 2 
+    ndn::Name read_name(commit_name_);
+    read_name.appendNumber(1);
+    LOG_INFO_COM("setInterestFilter for %s", read_name.toUri().c_str());
+    face_->setInterestFilter(read_name,
+                          bind(&Commo::onInterestCommit, this, _1, _2),
+                          bind(&Commo::onRegisterSucceed, this, _1),
+                          bind(&Commo::onRegisterFailed, this, _1, _2));
+#else
+    if (view_->nodes_size() == 1) {
+      ndn::Name read_name(commit_name_);
+      read_name.appendNumber(1);
+      LOG_INFO_COM("setInterestFilter for %s", read_name.toUri().c_str());
+      face_->setInterestFilter(read_name,
+                            bind(&Commo::onInterestCommit, this, _1, _2),
+                            bind(&Commo::onRegisterSucceed, this, _1),
+                            bind(&Commo::onRegisterFailed, this, _1, _2));
+    }
+#endif
   } else {
     if (view_->if_quorum()) {
       LOG_INFO_COM("setInterestFilter for %s", consumer_names_[view_->whoami()].toUri().c_str());
@@ -194,7 +208,7 @@ void Commo::consume_log_next() {
   log_counter_++;
   ndn::Interest interest(name.appendNumber(log_counter_));
   log_mut_.unlock();
-  interest.setInterestLifetime(ndn::time::milliseconds(3000));
+  interest.setInterestLifetime(ndn::time::milliseconds(20000));
   interest.setMustBeFresh(true);
   face_->expressInterest(interest,
                          bind(&Commo::onDataLog, this,  _1, _2),
