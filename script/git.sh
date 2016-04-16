@@ -1,1 +1,1 @@
-cd naxos && git pull && ./waf configure -l info -m S && ./waf
+cd naxos && git stash && git pull && ./waf configure -l info -m S && ./waf
