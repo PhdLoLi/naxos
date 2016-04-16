@@ -13,7 +13,7 @@ do
         for k in $( seq 0 4 )
         do
         echo ssh to node${k}
-           nohup ssh -t root@node${k} "cd /home/lijing/naxos &&  bin/naxos ${k} 3 50 1 5" &
+           nohup ssh -t root@node${k} "cd /home/lijing/naxos &&  bin/naxos ${k} 5 50 1 5" &
         done
 #        echo  $client_num 
 #        ssh -t root@node4 "cd /home/lijing/naxos &&  bin/clients $client_num $write_ratio 2"
