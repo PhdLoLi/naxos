@@ -32,4 +32,4 @@ cur_time=`date +"%m%d%H"`
 folder_name="${cur_time}""_5r_node4"
 cd /home/lijing/naxos/results/naxos && mkdir $folder_name  && mv *.txt $folder_name
 folder_name2="${cur_time}""_5r_node3"
-nohup ssh -t root@node7 "cd /home/lijing/naxos/results/naxos && mkdir $folder_name2  && mv *.txt $folder_name" &
+nohup ssh -t root@node7 "cd /home/lijing/naxos/results/naxos && mkdir $folder_name2  && mv *.txt $folder_name2" &
