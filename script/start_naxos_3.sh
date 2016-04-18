@@ -8,7 +8,7 @@ do
     do
         for write_ratio in ${write_ratios[@]}
         do
-            echo Client_Num: $client_num Write_Ratio: $write_ratio Read_From node0
+            echo Client_Num: $client_num Write_Ratio: $write_ratio Read_From node_$read_node
     
             for k in $( seq 0 2 )
             do
