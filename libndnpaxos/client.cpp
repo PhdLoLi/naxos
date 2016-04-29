@@ -126,11 +126,11 @@ int usec = 1000 * 2;
           rand_counter_ = commit_counter_ + (rand() % 10); 
         }
         if (commit_counter_ == rand_counter_) {
-          LOG_INFO("I 10per %d", commit_counter_);
+//          LOG_INFO("I 10per %d", commit_counter_);
           new_name.appendNumber(1 - write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
         } else {
           new_name.appendNumber(write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
-          LOG_INFO("I 90per %d", commit_counter_);
+//          LOG_INFO("I 90per %d", commit_counter_);
         }
       }
     } else {
