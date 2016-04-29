@@ -54,6 +54,9 @@ Client::Client(ndn::Name prefix, int commit_win, int ratio, int read_node)
       system(cmd_read.c_str());
       LOG_INFO("After Running %s", cmd_read.c_str());
     }
+    std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node0";
+    system(cmd_read.c_str());
+    LOG_INFO("After Running %s", cmd_read.c_str());
   }
 #else
   std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node" + std::to_string(read_node);
@@ -64,6 +67,11 @@ Client::Client(ndn::Name prefix, int commit_win, int ratio, int read_node)
 
 
   face_ = ndn::make_shared<ndn::Face>();
+  face_->setInterestFilter("/client",
+                        bind(&Client::onInterest, this, _1, _2),
+                        bind(&Client::onRegisterSucceed, this, _1),
+                        bind(&Client::onRegisterFailed, this, _1, _2));
+  
   boost::thread listen(boost::bind(&Client::attach, this));
 }
 
@@ -90,12 +98,21 @@ void Client::start_commit() {
     sleep(1);
   }
 
-  
+int usec = 1000 * 2;
+#if MODE_TYPE == 1  
+  com_win_ = 500 * 20;
+  done_ = true;
+  recording_ = true;
+#endif
+
   for (int i = 0; i < com_win_; i++) {
+
     counter_mut_.lock();
     starts_[commit_counter_] = std::chrono::high_resolution_clock::now(); 
     std::string value = "Commiting Value Time_" + std::to_string(commit_counter_) + " from " + "client_" + std::to_string(i);
+#if MODE_TYPE == 2    
     LOG_INFO(" +++++++++++ ZERO Init Commit Value: %s +++++++++++", value.c_str());
+#endif
     // interest format /prefix/commit/write_or_read(0 or 1,Number)/client_id(Number)/commit_counter(Number)/value_string
     ndn::Name new_name(prefix_);
 
@@ -103,7 +120,7 @@ void Client::start_commit() {
     if (ratio_ < 100) {
       if (ratio_ == 0) {
         new_name.appendNumber(1).appendNumber(i).appendNumber(commit_counter_).append(value);
-        LOG_INFO("I read %d", commit_counter_);
+//        LOG_INFO("I read %d", commit_counter_);
       } else {
         if (commit_counter_ % 10 == 0) {
           rand_counter_ = commit_counter_ + (rand() % 10); 
@@ -118,17 +135,33 @@ void Client::start_commit() {
       }
     } else {
       new_name.appendNumber(write_or_read_).appendNumber(i).appendNumber(commit_counter_).append(value);
-      LOG_INFO("I write %d", commit_counter_);
+//      LOG_INFO("I write %d", commit_counter_);
     }
   
     commit_counter_++;
     counter_mut_.unlock();
 
     consume(new_name);
-    
+
+#if MODE_TYPE == 2    
     LOG_INFO(" +++++++++++ ZERO FINISH Commit Value: %s +++++++++++", value.c_str());
+#endif
+
+#if MODE_TYPE == 1  
+    usleep(usec);
+
+    thr_mut_.lock();
+    int throughput = thr_counter_;
+    thr_mut_.unlock();
+    throughputs_.push_back(throughput);
+    if ((i % 500) == 0) {
+      LOG_INFO("i = %d PUNCH!  -- counter:%lu", i, throughput);
+    }
+#endif
 
   }
+
+#if MODE_TYPE > 1  
 
   for (int i = 0; i < interval; i++) {
     LOG_INFO("Not Recording Counting %d", i + 1);
@@ -170,6 +203,7 @@ void Client::start_commit() {
   recording_ = false;
   done_ = true;
   thr_mut_.unlock();
+#endif
 
   LOG_INFO("Last %d s period", interval);
   for (int i = interval; i > 0; i--) {
@@ -179,22 +213,18 @@ void Client::start_commit() {
 
   std::ofstream file_throughput_;
   std::ofstream file_latency_;
-//  std::ofstream file_trytime_;
   std::string thr_name;
   std::string lat_name;
-//  std::string try_name;
   
   LOG_INFO("Writing File Now!");
 
   thr_name = "results/naxos/N_t_" + std::to_string(com_win_) + "_" + std::to_string(ratio_) + "_" + std::to_string(read_node_) + ".txt";
   lat_name = "results/naxos/N_l_" + std::to_string(com_win_) + "_" + std::to_string(ratio_) + "_" + std::to_string(read_node_) + ".txt";
-//  try_name = "results/ndnpaxos/N_r_" + std::to_string(node_num_) + "_" + std::to_string(win_size_) + ".txt";
 
   file_throughput_.open(thr_name);
 
   file_latency_.open(lat_name);
 
-//  file_trytime_.open(try_name);
 
   for (int i = 0; i < throughputs_.size(); i++) {
     file_throughput_ << throughputs_[i] << "\n";
@@ -207,12 +237,8 @@ void Client::start_commit() {
   }
   file_latency_.close();
 
-//  for (int j = 0; j < trytimes_.size(); j++) {
-//    file_trytime_ << trytimes_[j] << "\n";
-//  }
-//  file_trytime_.close();
-
   LOG_INFO("Writing File Finished!");
+  
   stop();
   
 }
@@ -256,6 +282,8 @@ void Client::onData(const ndn::Interest& interest, const ndn::Data& data) {
     thr_counter_++;
   }
   thr_mut_.unlock();
+  
+//  face_->processEvents();
 
   if (done_ == false) {
     counter_mut_.lock();

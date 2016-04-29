@@ -39,7 +39,7 @@ Commo::Commo(Captain *captain, View &view, int role)
                           bind(&Commo::onRegisterFailed, this, _1, _2));
     // only register master for clients
     
-#if MODE_TYPE == 2 
+//#if MODE_TYPE == 2 
     ndn::Name read_name(commit_name_);
     read_name.appendNumber(1);
     LOG_INFO_COM("setInterestFilter for %s", read_name.toUri().c_str());
@@ -47,17 +47,7 @@ Commo::Commo(Captain *captain, View &view, int role)
                           bind(&Commo::onInterestCommit, this, _1, _2),
                           bind(&Commo::onRegisterSucceed, this, _1),
                           bind(&Commo::onRegisterFailed, this, _1, _2));
-#else
-    if (view_->nodes_size() == 1) {
-      ndn::Name read_name(commit_name_);
-      read_name.appendNumber(1);
-      LOG_INFO_COM("setInterestFilter for %s", read_name.toUri().c_str());
-      face_->setInterestFilter(read_name,
-                            bind(&Commo::onInterestCommit, this, _1, _2),
-                            bind(&Commo::onRegisterSucceed, this, _1),
-                            bind(&Commo::onRegisterFailed, this, _1, _2));
-    }
-#endif
+
   } else {
     if (view_->if_quorum()) {
       LOG_INFO_COM("setInterestFilter for %s", consumer_names_[view_->whoami()].toUri().c_str());

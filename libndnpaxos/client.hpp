@@ -30,6 +30,21 @@ class Client {
   void consume(ndn::Name &);
 
  private:
+  void onRegisterSucceed(const ndn::InterestFilter& filter) {
+    LOG_INFO_COM("onRegisterSucceed! %s", filter.getPrefix().toUri().c_str());
+  }
+
+  void onRegisterFailed(const ndn::Name& prefix, const std::string& reason) {
+    std::cerr << "ERROR: Failed to register prefix \""
+              << prefix << "\" in local hub's daemon (" << reason << ")"
+              << std::endl;
+    face_->shutdown();
+  }
+
+  void onInterest(const ndn::InterestFilter& filter, const ndn::Interest& interest) {
+    // deal with interest asking for committed_log of slot_id
+   }
+
   void onTimeout(const ndn::Interest& interest);
   void onData(const ndn::Interest& interest, const ndn::Data& data);  
 
