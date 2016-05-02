@@ -125,7 +125,27 @@ void Captain::commit(std::string& data, ndn::Name& dataName) {
   if (view_->if_master()) {
     commit(prop_value, dataName);
   } else {
+#if MODE_TYPE == 1
+    node_id_t old_master = view_->master_id();
+    // change quorums n_quorums
+    master_mutex_.lock();
+    view_->print_quorums();
+    view_->print_n_quorums();
+    view_->set_master(view_->whoami());
+    view_->remove_quorums(old_master);
+    node_id_t old_nq = *(view_->get_n_quorums()->begin());
+    view_->add_quorums(old_nq);
+    view_->remove_n_quorums(old_nq);
+    view_->print_quorums();
+    view_->print_n_quorums();
+    master_mutex_.unlock();
 
+    MsgCommand *msg_cmd = msg_command(SET_QUORUM);
+    commo_->send_one_msg(msg_cmd, COMMAND, old_nq);
+
+    LOG_INFO_CAP("master_id changed from %u to %u", old_master, view_->whoami());
+    commit(prop_value, dataName);
+#else
     MsgCommit *msg_com = msg_commit(prop_value);
     // blocking style receive reply or timeout now no body call setFilter or run()
     commo_->send_one_msg(msg_com, COMMIT, view_->master_id());
@@ -133,7 +153,9 @@ void Captain::commit(std::string& data, ndn::Name& dataName) {
     commit_ok_ = false; 
     while (!commit_ok_) commit_ok_cond_.wait(lock);
     //std::cout << "I finish waiting!!!!" << std::endl;
+#endif
   }
+
   LOG_DEBUG_CAP("commit over!!!");
 }
 
@@ -623,10 +645,28 @@ void Captain::handle_msg(google::protobuf::Message *msg, MsgType msg_type, ndn::
 
     case COMMAND: {
       // captain should handle this message
-      // not using this!!!!!
       MsgCommand *msg_cmd = (MsgCommand *)msg;
-      LOG_TRACE_CAP("%s(msg_type):COMMAND/Simple Reply from (node_id):%u --NodeID %u handle", 
+      LOG_INFO_CAP("%s(msg_type):COMMAND from (node_id):%u --NodeID %u handle", 
                     UND_YEL, msg_cmd->msg_header().node_id(), view_->whoami());
+
+      switch (msg_cmd->cmd_type()) {
+        case SET_QUORUM: {
+          master_mutex_.lock();
+          view_->print_quorums();
+          view_->print_n_quorums();
+//          view_->remove_quorums(old_master);
+          view_->set_master(1);
+
+          view_->add_quorums(view_->whoami());
+          view_->remove_n_quorums(view_->whoami());
+          view_->print_quorums();
+          view_->print_n_quorums();
+          master_mutex_.unlock();
+
+          break;
+        }
+      }
+
       break;
     }
     default: 

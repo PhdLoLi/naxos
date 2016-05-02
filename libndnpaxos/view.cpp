@@ -41,6 +41,7 @@ View::View(node_id_t node_id, std::string cf)
   size_ =nodes.size();
   q_size_ = ceil((size_ + 1) / 2.0);
 
+  LOG_INFO("size: %d    q_size: %d", size_, q_size_);
   for (std::size_t i = 0; i < nodes.size(); i++) {
 
 		YAML::Node node = nodes[i];
@@ -68,11 +69,13 @@ View::View(node_id_t node_id, std::string cf)
 
     host_info_t host_info = host_info_t(name, addr);
     host_nodes_.push_back(host_info);
-    if (i <= q_size_) {
+    if (i < q_size_) {
       quorums_.emplace(i);
     } else {
       n_quorums_.emplace(i);
     }
+    print_quorums();
+    print_n_quorums();
   }
 
   if (lease) {
@@ -128,7 +131,8 @@ bool View::if_master() {
 }
 
 bool View::if_quorum() {
-  return node_id_ < q_size_ ? true : false; 
+  return quorums_.find(node_id_) != quorums_.end() ? true : false;
+//  return node_id_ < q_size_ ? true : false; 
 }
 
 void View::set_master(node_id_t node_id) {

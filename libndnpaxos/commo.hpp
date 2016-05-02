@@ -51,6 +51,8 @@ class Commo {
   void onDataLog(const ndn::Interest& interest, const ndn::Data& data); 
   void onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack); 
   void onTimeout(const ndn::Interest& interest, int& resendTimes);
+  void onTimeoutLog(const ndn::Interest& interest, int& resendTimes) {
+  };
   void consume(ndn::Name& name);
   void consume_log_next();
 
@@ -76,6 +78,7 @@ class Commo {
 
   slot_id_t log_counter_;
   boost::mutex log_mut_;
+  boost::mutex quorum_mut_;
 //  boost::mutex reg_ok_mutex_;
 //  boost::condition_variable reg_ok_cond_;
 };

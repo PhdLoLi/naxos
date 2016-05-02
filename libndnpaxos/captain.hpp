@@ -226,6 +226,7 @@ class Captain {
   bool commit_ok_;
   boost::mutex commit_ok_mutex_;
   boost::condition_variable commit_ok_cond_;
+  boost::mutex master_mutex_;
 
 };
 

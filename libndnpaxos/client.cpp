@@ -57,6 +57,12 @@ Client::Client(ndn::Name prefix, int commit_win, int ratio, int read_node)
     std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node0";
     system(cmd_read.c_str());
     LOG_INFO("After Running %s", cmd_read.c_str());
+
+    for (int i = 1; i < q_size; i++) {
+      std::string cmd_write = "nfdc register " + write_name.toUri() + " tcp://node" + std::to_string(i);
+      system(cmd_write.c_str());
+      LOG_INFO("After Running %s", cmd_write.c_str());
+    }
   }
 #else
   std::string cmd_read = "nfdc register " + read_name.toUri() + " tcp://node" + std::to_string(read_node);

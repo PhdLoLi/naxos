@@ -60,7 +60,23 @@ Commo::Commo(Captain *captain, View &view, int role)
                             bind(&Commo::onInterestLog, this, _1, _2),
                             bind(&Commo::onRegisterSucceed, this, _1),
                             bind(&Commo::onRegisterFailed, this, _1, _2));
+
+    ndn::Name write_name(commit_name_);
+    write_name.appendNumber(0);
+    LOG_INFO_COM("setInterestFilter for %s", write_name.toUri().c_str());
+    face_->setInterestFilter(write_name,
+                          bind(&Commo::onInterestCommit, this, _1, _2),
+                          bind(&Commo::onRegisterSucceed, this, _1),
+                          bind(&Commo::onRegisterFailed, this, _1, _2));
+
     }
+      LOG_INFO_COM("setInterestFilter for %s", consumer_names_[view_->whoami()].toUri().c_str());
+      face_->setInterestFilter(consumer_names_[view_->whoami()],
+                            bind(&Commo::onInterest, this, _1, _2),
+                            bind(&Commo::onRegisterSucceed, this, _1),
+                            bind(&Commo::onRegisterFailed, this, _1, _2));
+
+
     if (!view_->if_quorum() || (view_->nodes_size() == 2)) {
 
       // non-quorum servants need to serve reading requests
@@ -193,17 +209,21 @@ void Commo::send_one_msg(google::protobuf::Message *msg, MsgType msg_type, node_
 }
 
 void Commo::consume_log_next() {
-  ndn::Name name(log_name_);
-  log_mut_.lock();
-  log_counter_++;
-  ndn::Interest interest(name.appendNumber(log_counter_));
-  log_mut_.unlock();
-  interest.setInterestLifetime(ndn::time::milliseconds(20000));
-  interest.setMustBeFresh(true);
-  face_->expressInterest(interest,
-                         bind(&Commo::onDataLog, this,  _1, _2),
-                         bind(&Commo::onNack, this,  _1, _2),
-                         bind(&Commo::onTimeout, this, _1, 0));
+  if(view_->if_quorum() == false)
+  {  
+    ndn::Name name(log_name_);
+    log_mut_.lock();
+    log_counter_++;
+    ndn::Interest interest(name.appendNumber(log_counter_));
+    log_mut_.unlock();
+    interest.setInterestLifetime(ndn::time::milliseconds(20000));
+    interest.setMustBeFresh(true);
+    face_->expressInterest(interest,
+                           bind(&Commo::onDataLog, this,  _1, _2),
+//                           bind(&Commo::onNack, this,  _1, _2),
+                           bind(&Commo::onTimeoutLog, this, _1, 0));
+    LOG_INFO("consume log %d", log_counter_);
+  }
 }
 
 void Commo::consume_log(int win_size) {
@@ -259,6 +279,9 @@ void Commo::inform_client(slot_id_t slot_id, int try_time, ndn::Name &dataName) 
 void Commo::onInterest(const ndn::InterestFilter& filter, const ndn::Interest& interest) {
   ndn::Name dataName(interest.getName());
   LOG_DEBUG_COM("<< Producer I: %s", dataName.toUri().c_str());
+  if (view_->if_quorum() == false) {
+    LOG_INFO_COM("<< Producer I: %s", dataName.toUri().c_str());
+  }
 
   // Create new name, based on Interest's name
   ndn::name::Component request = interest.getName().get(-1);
@@ -353,7 +376,7 @@ void Commo::deal_nack(std::string &msg_str) {
 
 void Commo::consume(ndn::Name& name) {
   ndn::Interest interest(name);
-  interest.setInterestLifetime(ndn::time::milliseconds(500));
+  interest.setInterestLifetime(ndn::time::milliseconds(200));
   interest.setMustBeFresh(true);
 //  std::cerr << "Sending I: " << interest << std::endl;
   face_->expressInterest(interest,
@@ -380,7 +403,8 @@ void Commo::onDataLog(const ndn::Interest& interest, const ndn::Data& data) {
   captain_->add_chosen_value(slot_id, prop_value);
 
   // carry on consuming
-  consume_log_next();
+  if(view_->if_quorum() == false)
+    consume_log_next();
 }
 
 void Commo::onData(const ndn::Interest& interest, const ndn::Data& data) {
@@ -396,6 +420,36 @@ void Commo::onData(const ndn::Interest& interest, const ndn::Data& data) {
 void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
 //  std::cerr << ndn::time::steady_clock::now() << " Consumer Nack " << interest.getName().toUri() << std::endl;
 //  LOG_DEBUG_COM("Consumer NACK %s", interest.getName().toUri().c_str());
+#if MODE_TYPE == 1
+  ndn::Name name = interest.getName();
+  std::string node_name = name.get(-2).toUri();
+  LOG_INFO_COM("Nack!! interest %s", interest.getName().toUri().c_str());
+  std::string node_id(&node_name.back());
+  node_id_t old_sq = std::stoi(node_id);
+  LOG_INFO_COM("old_sq %d", old_sq);
+  if (old_sq > 2) return;
+  quorum_mut_.lock();
+
+  view_->print_quorums();
+  view_->print_n_quorums();
+  view_->remove_quorums(old_sq);
+  node_id_t old_nq = *(view_->get_n_quorums()->begin());
+  view_->add_quorums(old_nq);
+  view_->remove_n_quorums(old_nq);
+  view_->print_quorums();
+  view_->print_n_quorums();
+
+  quorum_mut_.unlock();
+  MsgCommand *msg_cmd = captain_->msg_command(SET_QUORUM);
+  send_one_msg(msg_cmd, COMMAND, old_nq);
+  
+  ndn::Name new_name(consumer_names_[old_nq]);
+  new_name.append(interest.getName().get(-1));
+
+  LOG_INFO_COM("SEND to --node%d  AGAIN", old_nq);
+  consume(new_name);
+#endif
+
 //  ndn::name::Component request = interest.getName().get(-1);
 //  const uint8_t* value = request.value();
 //  size_t size = request.value_size();
@@ -406,6 +460,36 @@ void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
 }
 
 void Commo::onTimeout(const ndn::Interest& interest, int& resendTimes) {
+
+#if MODE_TYPE == 1
+  ndn::Name name = interest.getName();
+  std::string node_name = name.get(-2).toUri();
+  LOG_INFO_COM("Timeout!! interest %s", interest.getName().toUri().c_str());
+  std::string node_id(&node_name.back());
+  node_id_t old_sq = std::stoi(node_id);
+  LOG_INFO_COM("old_sq %d", old_sq);
+  if (old_sq > 2) return;
+  quorum_mut_.lock();
+
+  view_->print_quorums();
+  view_->print_n_quorums();
+  view_->remove_quorums(old_sq);
+  node_id_t old_nq = *(view_->get_n_quorums()->begin());
+  view_->add_quorums(old_nq);
+  view_->remove_n_quorums(old_nq);
+  view_->print_quorums();
+  view_->print_n_quorums();
+
+  quorum_mut_.unlock();
+  MsgCommand *msg_cmd = captain_->msg_command(SET_QUORUM);
+  send_one_msg(msg_cmd, COMMAND, old_nq);
+  
+  ndn::Name new_name(consumer_names_[old_nq]);
+  new_name.append(interest.getName().get(-1));
+
+  LOG_INFO_COM("SEND to --node%d  AGAIN", old_nq);
+  consume(new_name);
+#endif
 //  LOG_DEBUG_COM("Consumer Timeout %s, count %d", interest.getName().toUri().c_str(), resendTimes);
 //  std::cerr << ndn::time::steady_clock::now() << " Consumer Timeout " << interest.getName().toUri() << " count " << resendTimes << std::endl;
   

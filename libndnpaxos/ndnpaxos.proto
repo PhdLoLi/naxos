@@ -16,6 +16,7 @@ enum CmdType {
   SET_MASTER = 0;
   REPLY_DECIDE = 1;
   REPLY_TEACH = 2;
+  SET_QUORUM = 3;
 }
 
 message MsgHeader {

@@ -14,6 +14,34 @@ class View {
  public:
 //  View(set<node_id_t> &nodes);
   View(node_id_t node_id, std::string config_file);
+  void add_quorums(node_id_t new_node) {
+    if (quorums_.find(new_node) == quorums_.end())
+      quorums_.emplace(new_node);
+  };
+  void remove_quorums(node_id_t old_node) {
+    if (quorums_.find(old_node) != quorums_.end())    
+      quorums_.erase(old_node);
+  };
+  void add_n_quorums(node_id_t new_node) {
+    if (n_quorums_.find(new_node) == n_quorums_.end())
+      n_quorums_.emplace(new_node);
+  };
+  void remove_n_quorums(node_id_t old_node) {
+    if (n_quorums_.find(old_node) != n_quorums_.end())
+      n_quorums_.erase(old_node);
+  };
+  void print_quorums() {
+      LOG_INFO("Quorums member:");
+    for (std::set<node_id_t>::iterator it = quorums_.begin(); it !=  quorums_.end(); ++it) {
+      LOG_INFO("node%d", *it);
+    }
+  }
+  void print_n_quorums() {
+      LOG_INFO("Non-Quorums member:");
+    for (std::set<node_id_t>::iterator it = n_quorums_.begin(); it !=  n_quorums_.end(); ++it) {
+      LOG_INFO("node%d", *it);
+    }
+  }
   std::set<node_id_t> *get_quorums();
   std::set<node_id_t> *get_n_quorums();
   std::vector<host_info_t> *get_host_nodes();
