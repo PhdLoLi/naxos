@@ -222,8 +222,9 @@ void Commo::consume_log_next() {
                            bind(&Commo::onDataLog, this,  _1, _2),
 //                           bind(&Commo::onNack, this,  _1, _2),
                            bind(&Commo::onTimeoutLog, this, _1, 0));
-    if ((log_counter_ % 3000) == 0)
+    if ((log_counter_ % 3000) == 0) {
       LOG_INFO("consume log %d", log_counter_);
+    }
   }
 }
 
