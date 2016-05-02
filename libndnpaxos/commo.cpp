@@ -427,7 +427,7 @@ void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
   std::string node_id(&node_name.back());
   node_id_t old_sq = std::stoi(node_id);
   LOG_INFO_COM("old_sq %d", old_sq);
-  if (old_sq > 2) return;
+  if (old_sq >= 2) return;
   quorum_mut_.lock();
 
   view_->print_quorums();
@@ -461,35 +461,36 @@ void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
 
 void Commo::onTimeout(const ndn::Interest& interest, int& resendTimes) {
 
-#if MODE_TYPE == 1
-  ndn::Name name = interest.getName();
-  std::string node_name = name.get(-2).toUri();
-  LOG_INFO_COM("Timeout!! interest %s", interest.getName().toUri().c_str());
-  std::string node_id(&node_name.back());
-  node_id_t old_sq = std::stoi(node_id);
-  LOG_INFO_COM("old_sq %d", old_sq);
-  if (old_sq > 2) return;
-  quorum_mut_.lock();
+//#if MODE_TYPE == 1
+//  ndn::Name name = interest.getName();
+//  std::string node_name = name.get(-2).toUri();
+//  LOG_INFO_COM("Timeout!! interest %s", interest.getName().toUri().c_str());
+//  std::string node_id(&node_name.back());
+//  node_id_t old_sq = std::stoi(node_id);
+//  LOG_INFO_COM("old_sq %d", old_sq);
+//  if (old_sq >= 2) return;
+//  quorum_mut_.lock();
+//
+//  view_->print_quorums();
+//  view_->print_n_quorums();
+//  view_->remove_quorums(old_sq);
+//  node_id_t old_nq = *(view_->get_n_quorums()->begin());
+//  view_->add_quorums(old_nq);
+//  view_->remove_n_quorums(old_nq);
+//  view_->print_quorums();
+//  view_->print_n_quorums();
+//
+//  quorum_mut_.unlock();
+//  MsgCommand *msg_cmd = captain_->msg_command(SET_QUORUM);
+//  send_one_msg(msg_cmd, COMMAND, old_nq);
+//  
+//  ndn::Name new_name(consumer_names_[old_nq]);
+//  new_name.append(interest.getName().get(-1));
+//
+//  LOG_INFO_COM("SEND to --node%d  AGAIN", old_nq);
+//  consume(new_name);
+//#endif
 
-  view_->print_quorums();
-  view_->print_n_quorums();
-  view_->remove_quorums(old_sq);
-  node_id_t old_nq = *(view_->get_n_quorums()->begin());
-  view_->add_quorums(old_nq);
-  view_->remove_n_quorums(old_nq);
-  view_->print_quorums();
-  view_->print_n_quorums();
-
-  quorum_mut_.unlock();
-  MsgCommand *msg_cmd = captain_->msg_command(SET_QUORUM);
-  send_one_msg(msg_cmd, COMMAND, old_nq);
-  
-  ndn::Name new_name(consumer_names_[old_nq]);
-  new_name.append(interest.getName().get(-1));
-
-  LOG_INFO_COM("SEND to --node%d  AGAIN", old_nq);
-  consume(new_name);
-#endif
 //  LOG_DEBUG_COM("Consumer Timeout %s, count %d", interest.getName().toUri().c_str(), resendTimes);
 //  std::cerr << ndn::time::steady_clock::now() << " Consumer Timeout " << interest.getName().toUri() << " count " << resendTimes << std::endl;
   
