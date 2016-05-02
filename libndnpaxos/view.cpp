@@ -51,7 +51,7 @@ View::View(node_id_t node_id, std::string cf)
     // set a node in view
     std::string local_host("localhost");
     if (addr.compare(local_host) != 0) {
-      if ((node_id_ == 0) && (i > 0)) {
+      if ((node_id_ < q_size_) && (i > 0)) {
         std::string cmd_node = "nfdc register " + prefix_ + "/" + name + " tcp://" + addr;
         system(cmd_node.c_str());
         LOG_INFO("After Running %s", cmd_node.c_str());
