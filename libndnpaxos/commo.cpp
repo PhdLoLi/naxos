@@ -430,6 +430,8 @@ void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
   if (old_sq >= 2) return;
   quorum_mut_.lock();
 
+  if (view_->get_n_quorums()->empty() != true) {
+
   view_->print_quorums();
   view_->print_n_quorums();
   view_->remove_quorums(old_sq);
@@ -448,6 +450,7 @@ void Commo::onNack(const ndn::Interest& interest, const ndn::lp::Nack& nack) {
 
   LOG_INFO_COM("SEND to --node%d  AGAIN", old_nq);
   consume(new_name);
+  }
 #endif
 
 //  ndn::name::Component request = interest.getName().get(-1);
