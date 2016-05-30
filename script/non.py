@@ -1,22 +1,43 @@
 import fileinput
 #for line in fileinput.input(['../results/naxos/fail_SN_042919_3r_node3/N_t_10000_0_3.txt']):
-records = range(1, 5000)
 records = []
 thr = []
-#for i in range(1, 5000)
+thr_50 = []
+thr_100 = []
+for i in range(1, 5001):
+    records.append(i) 
+    
 #for line in open('../results/naxos/fail_SN_042919_3r_node3/N_t_10000_10_3.txt','r').readlines():
 #    records.append(int(line.rstrip('\n')))
 
-for i in range(5001, 6000):
+for i in range(5001, 5200):
     records.append(5000)
-records.append(5500)
-for i in range(6002, 10000):
-    records.append(i - 1000)
+for i in range(1, 66):
+    records.append(5000 + i * 4)
+for i in range(5264, 10001):
+    records.append(i)
 
-for i in range(251, len(records) - 251):
-    thr.append(records[i + 250] - records[i - 250])
-    print i - 251, thr[i - 251]
+for i in range(0, len(records) - 100):
+    thr_100.append((records[i + 100] - records[i]) * 5)
 
-thr_file = open('../results/naxos/fail_NonP/non_r.txt', 'w')
+for i in range(0, len(records) - 50):
+    thr_50.append((records[i + 50] - records[i]) * 10)
+
+for i in range(0, len(records) - 500):
+    thr.append((records[i + 500] - records[i]))
+
+thr_file = open('../results/naxos/fail_NonP/link_thr.txt', 'w')
 for item in thr:
   thr_file.write("%s\n" % item)
+
+thr_file_50 = open('../results/naxos/fail_NonP/link_thr_50.txt', 'w')
+for item in thr_50:
+  thr_file_50.write("%s\n" % item)
+
+thr_file_100 = open('../results/naxos/fail_NonP/link_thr_100.txt', 'w')
+for item in thr_100:
+  thr_file_100.write("%s\n" % item)
+
+rec_file = open('../results/naxos/fail_NonP/link_rec.txt', 'w')
+for item in records:
+  rec_file.write("%s\n" % item)
