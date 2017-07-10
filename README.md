@@ -2,7 +2,7 @@ Naxos
 ----
 
 Naxos is an implementation combining Paxos and NDN. It also inculdes some simple testing of functionality and performance.  
-This is a goodbye to my PhD life.
+Say goodbye to my PhD life.
 
 For license information see LICENSE.
 
